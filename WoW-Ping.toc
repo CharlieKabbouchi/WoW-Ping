@@ -1,0 +1,7 @@
+## Interface: 50400
+## Title: WoW-Ping
+## Notes: Ping
+## Author: CK
+## Version: 0.0.1
+
+WoW-Ping.lua
