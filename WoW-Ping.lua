@@ -1,24 +1,28 @@
 SLASH_PING1 = "/ping"
 
 
-local function PingHandler(ping)
-    if ping ~= '3' and ping ~= '4' then
+local function PingHandler(latency)
+    if latency ~= '3' and latency ~= '4' then
         print("use 3 or 4");
     end
-    if ping == '3' then
-        print("Home Latency: "..select(ping, GetNetStats()).."ms.");
+    if latency == '3' then
+        print("Home Latency: " .. select(latency, GetNetStats()) .. "ms.");
     end
 
-    if ping == '4' then
-        print("World Latency: "..select(ping, GetNetStats()).."ms.");
+    if latency == '4' then
+        print("World Latency: " .. select(latency, GetNetStats()) .. "ms.");
     end
-
 end
 SlashCmdList["PING"] = PingHandler;
 
 
+local MAX_PING_HISTORY = 5
+local pingHistory = {}
+local pingText = {}
+
+
 local frame = CreateFrame("Frame", "Ping Frame", UIParent, "BasicFrameTemplateWithInset")
-frame:SetSize(300, 100)
+frame:SetSize(200, 200)
 frame:SetPoint("CENTER", 0, 0)
 frame:SetMovable(true)
 frame:EnableMouse(true)
@@ -26,14 +30,33 @@ frame:RegisterForDrag("LeftButton")
 frame:SetScript("OnDragStart", frame.StartMoving)
 frame:SetScript("OnDragStop", frame.StopMovingOrSizing)
 
-local pingText = frame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-pingText:SetText("Current Latency: 0ms")
-pingText:SetPoint("CENTER", 0, 0)
+for i = 1, MAX_PING_HISTORY do
+    pingText[i] = frame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+    pingText[i]:SetText("")
+    pingText[i]:SetPoint("CENTER", 0, -20 * (i - 1))
+    
+end
+
 
 local function UpdatePing()
     local latency = select(3, GetNetStats())
-    pingText:SetText("Current Latency: " .. latency .. "ms")
+    
+    table.insert(pingHistory, 1, latency)
+
+    if #pingHistory > MAX_PING_HISTORY then
+        table.remove(pingHistory)
+    end
+    
+    for i = 1, MAX_PING_HISTORY do
+        if pingHistory[i] then
+            pingText[i]:SetText("Home Latency: " .. pingHistory[i] .. "ms")
+        else
+            pingText[i]:SetText("")
+        end
+    end
 end
+
+
 
 local timer = 0
 frame:SetScript("OnUpdate", function(self, elapsed)
@@ -43,4 +66,3 @@ frame:SetScript("OnUpdate", function(self, elapsed)
         timer = 0
     end
 end)
-
